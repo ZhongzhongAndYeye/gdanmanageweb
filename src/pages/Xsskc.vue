@@ -1,60 +1,221 @@
 <template>
   <el-container>
     <el-header>
-      入库时间:{{ rktime }}&nbsp;&nbsp;采用率:{{ frequency * 100 }}%
+      入库时间：{{ rktime }}&nbsp;&nbsp;&nbsp;&nbsp; 采用率：{{
+        frequency * 100
+      }}%
     </el-header>
     <el-main>
-      <el-table :data="tableData" :show-header="false" :row-style="{height: '95px'}">
-        <el-table-column prop="index" label="序号" width="50">
-        </el-table-column>
-        <el-table-column prop="handcard" label="手牌牌型" width="890">
-        </el-table-column>
+      <!-- 牌局显示表格 -->
+      <el-table
+        :data="tabledata"
+        :show-header="false"
+        :row-style="{ height: '100px' }"
+      >
+        <el-table-column prop="order" label="序号" width="50"></el-table-column>
+        <el-table-column
+          prop="handcard"
+          label="手牌牌型"
+          width="1000"
+        ></el-table-column>
       </el-table>
     </el-main>
     <el-footer>
+      <!-- footer上的三个按钮 -->
       <div id="footerbtn">
-        <el-button type="primary" size="small">出库</el-button>
-        <el-button plain size="small">新建一桌</el-button>
-        <el-button type="danger" plain size="small">删除</el-button>
+        <el-button
+          type="primary"
+          size="small"
+          style="margin-right: 10px"
+          @click="dialogFormVisible = true"
+          >出库</el-button
+        >
+
+        <el-dialog title="出库" :visible.sync="dialogFormVisible" width="30%">
+          <el-form :model="form">
+            <el-form-item label="选择桌子:" :label-width="formLabelWidth">
+              <el-select v-model="form.data" style="width:250px">
+                <el-option v-for="item in xsstable" :key="item.id" :label="item.tablename" :value="item.id"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible = false">取消</el-button>
+            <el-button type="primary" @click="dialogFormVisible = false;xssck()"
+              >确定</el-button
+            >
+          </div>
+        </el-dialog>
+        <el-button plain size="small" @click="open()">新建一桌</el-button>
+        <el-popover placement="top" width="160" v-model="visible">
+          <p>确定删除此局库存牌局吗？</p>
+          <div style="text-align: right; margin: 0">
+            <el-button size="mini" @click="visible = false">取消</el-button>
+            <el-button
+              size="mini"
+              plain
+              type="danger"
+              @click="
+                visible = false;
+                delxsskc();
+              "
+              >确定</el-button
+            >
+          </div>
+          <el-button
+            type="danger"
+            slot="reference"
+            style="margin-left: 10px"
+            plain
+            size="small"
+            >删除</el-button
+          >
+        </el-popover>
       </div>
-      <el-pagination background layout="prev, pager, next" :page-count="10">
+      <!-- 分页器 -->
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :page-count="this.xsskcdata.length"
+        @current-change="handleCurrentChange"
+      >
       </el-pagination>
     </el-footer>
   </el-container>
 </template>
 
 <script>
+import { getxsskc, delxsskc, createxsstable } from "../api";
+import { mapState } from "vuex";
 export default {
+  name: "Xsskc",
   data() {
     return {
       rktime: 0,
       frequency: 0,
-      tableData: [
-        {
-          index: 1,
-          handcard: "asdl",
-        },
-        {
-          index: 2,
-          handcard: "asdl",
-        },
-        {
-          index: 3,
-          handcard: "asdl",
-        },
-        {
-          index: 4,
-          handcard: "asdl",
-        },
-      ],
+      tabledata: [],
+      tokenvalid: 1,
+      xsskcdata: [],
+      pjid: "",
+      token: "",
+      visible: false,
+      tablename: "",
+
+      dialogFormVisible: false,
+      form: {
+        data: "",
+      },
+      formLabelWidth: "100px",
     };
   },
-  // mounted(){
-  //   this.$store.dispatch("xsskc/getdata")
-  // },
-  // computed: {
-  //   ...mapState("xsskc", []),
-  // },
+  methods: {
+    // 出库
+    xssck(){
+      if (this.form.data == ""){
+        alert("牌局出库的目标桌子不可为空！")  
+      }else{
+
+      }
+    },
+    // 新建一桌
+    createnewtable() {
+      createxsstable(this.token, this.tablename).then(
+        (response) => {
+          console.log(response);
+          if (response.tokenvalid == 1) {
+            if (response.status == 1) {
+              alert("新建桌子成功！");
+              this.$router.go(0);
+            } else if (response.status == 2) {
+              alert("桌子名称重复！请重新输入...");
+            } else {
+              alert("新建桌子过程中出现错误，请重新创建...");
+            }
+          } else {
+            this.tokenvalid = response.tokenvalid;
+          }
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
+    },
+    // 新建一桌的弹出框函数
+    open() {
+      this.$prompt("请输入要创建的桌子名称：", "新建桌子", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+      })
+        .then(({ value }) => {
+          this.tablename = value;
+          this.createnewtable();
+        })
+        .catch(() => {}); // 仅仅防止控制台报错
+    },
+    // 点击分页导航后执行此函数并传入点击的分页序号
+    handleCurrentChange(val) {
+      this.tabledata = this.xsskcdata[val - 1].pjdata;
+      this.rktime = this.xsskcdata[val - 1].putintime;
+      this.frequency = this.xsskcdata[val - 1].frequency;
+      this.pjid = this.xsskcdata[val - 1].pjid;
+    },
+    // 删除牌局
+    delxsskc() {
+      console.log(this.pjid);
+      delxsskc(this.token, this.pjid).then(
+        (response) => {
+          if (response.tokenvalid == 1) {
+            if (response.msg == "删除记录成功") {
+              this.$router.go(0);
+            } else {
+              alert("删除记录时发生错误:", msg);
+            }
+          } else {
+            this.tokenvalid = response.tokenvalid;
+          }
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
+    },
+  },
+  computed: {
+    ...mapState("home", ["xsstable"]),
+  },
+  mounted() {
+    this.token = localStorage.getItem("token");
+    // 获取所有库存牌局信息
+    getxsskc(this.token).then(
+      (response) => {
+        if (response.tokenvalid == 1) {
+          if (response.msg == "查询所有限时赛数据成功") {
+            this.tabledata = response.data[0].pjdata; // 默认显示第一页的数据
+            this.rktime = response.data[0].putintime;
+            this.frequency = response.data[0].frequency;
+            this.pjid = response.data[0].pjid;
+            this.xsskcdata = response.data;
+          } else {
+            alert("获取限时赛库存牌局数据时发生错误:", msg);
+          }
+        } else {
+          this.tokenvalid = response.tokenvalid;
+        }
+      },
+      (err) => {
+        console.log(err);
+      }
+    );
+  },
+  watch: {
+    // 监测token是否在进入路由后才过期（后端验证）
+    tokenvalid() {
+      alert("登录状态已失效！请重新登录...");
+      this.tokenvalid = 1;
+      localStorage.removeItem("token");
+      this.$router.push({ name: "login" });
+    },
+  },
 };
 </script>
   

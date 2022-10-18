@@ -3,14 +3,15 @@ import VueRouter from "vue-router";
 import Login from "../pages/Login"
 import Home from "../pages/Home"
 import Xsskc from "../pages/Xsskc"
+import Xssyx from "../pages/Xssyx"
 
 const router = new VueRouter({
     routes: [
         {
-            path:'/',
-            beforeEnter:(to,from,next)=>{
+            path: '/',
+            beforeEnter: (to, from, next) => {
                 next({
-                    name:"login"
+                    name: "login"
                 })
             }
         },
@@ -33,8 +34,8 @@ const router = new VueRouter({
                         next({                                  // 没有失效则直接跳转home
                             name: "home"
                         })
-                    } else {           
-                        localStorage.removeItem("token")                 
+                    } else {
+                        localStorage.removeItem("token")
                         next()
                     }
                 }
@@ -49,6 +50,16 @@ const router = new VueRouter({
                     name: "xsskc",
                     path: "xsskc",
                     component: Xsskc
+                },
+                {
+                    name: "xssyx",
+                    path: "xssyx",
+                    component: Xssyx,
+                    props($route) {
+                        return {
+                            tableid: $route.query.tableid
+                        }
+                    }
                 }
             ]
         }
@@ -79,5 +90,10 @@ router.beforeEach((to, from, next) => {
     }
     next()
 })
+
+const originalPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push(location) {
+    return originalPush.call(this, location).catch(err => err)
+}
 
 export default router

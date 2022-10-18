@@ -2,14 +2,11 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 Vue.use(Vuex)
 
-// 引入小仓库
-import login from './login'
-import xsskc from './xsskc'
+import home from "./home"
 
 export default new Vuex.Store({
-  namespace: true,
+  namespaced: true,
   modules: {
-    login,
-    xsskc
+    home
   }
 })

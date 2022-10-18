@@ -26,30 +26,44 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { login } from "../api";
 export default {
   name: "Login",
   data() {
     return {
       username: "",
       password: "",
+      msg: "",
     };
   },
   methods: {
     login() {
-      this.$store.dispatch("login/login", [this.username, this.password]); // 请求vux仓库发请求
-      setTimeout(() => {
-        localStorage.setItem("token", this.token);
-        if (this.msg == "登录成功") {
-          this.$router.push({
-            name: "home",
-          });
+      var param = {
+        username: this.username,
+        password: this.password,
+      };
+      if (this.username == "" || this.password == "") {
+        alert("账号或密码不能为空！");
+        return;
+      }
+      login(param).then(
+        (response) => {
+          this.msg = response.msg;
+          if (response.msg == "登录成功") {
+            localStorage.token = response.token;
+            this.$router.push({
+              name: "home",
+            });
+          }
+        },
+        (err) => {
+          console.log(err);
         }
-      }, 300);
+      );
     },
   },
-  computed: {
-    ...mapState("login", ["msg", "token"]),
+  mounted() {
+    this.msg = "";
   },
 };
 </script>

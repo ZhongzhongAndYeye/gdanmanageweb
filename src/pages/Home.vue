@@ -5,37 +5,34 @@
       <el-button @click="quitLogin">退出登录</el-button>
     </el-header>
     <el-main>
-      <el-col :span="7">
+      <el-col :span="4">
         <el-menu default-active="1" class="el-menu-vertical-demo">
           <el-submenu index="1">
-            <template slot="title">
-              <span>局数赛</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="1-1">库存牌局</el-menu-item>
-              <el-submenu index="1-2">
-                <template slot="title">已选牌局</template>
-                <el-menu-item index="1-2-1">第一桌</el-menu-item>
-              </el-submenu>
-            </el-menu-item-group>
+            <template slot="title">局数赛</template>
+            <el-menu-item index="1-1">库存牌局</el-menu-item>
+            <el-submenu index="1-2">
+              <template slot="title">已选牌局</template>
+              <el-menu-item index="1-2-1">第一桌</el-menu-item>
+            </el-submenu>
           </el-submenu>
+
           <el-submenu index="2">
-            <template slot="title">
-              <span>限时赛</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="2-1" @click="kcpjck">
-                库存牌局
-              </el-menu-item>
-              <el-submenu index="2-2">
-                <template slot="title">已选牌局</template>
-                <el-menu-item index="2-2-1">第一桌</el-menu-item>
-              </el-submenu>
-            </el-menu-item-group>
+            <template slot="title">限时赛</template>
+            <el-menu-item index="2-1" @click="xsskcpj">库存牌局</el-menu-item>
+            <el-submenu index="2-2">
+              <template slot="title">已选牌局</template>
+              <el-menu-item
+                :index="v.id"
+                v-for="v in xsstable"
+                :key="v.id"
+                @click="xssyxpj(v.id)"
+                >{{ v.tablename }}</el-menu-item
+              >
+            </el-submenu>
           </el-submenu>
         </el-menu>
       </el-col>
-      <el-col :span="16" :offset="1">
+      <el-col :span="19" :offset="1">
         <router-view></router-view>
       </el-col>
     </el-main>
@@ -43,17 +40,46 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 export default {
+  Name: "Home",
+  data() {
+    return {
+      token: "",
+    };
+  },
   methods: {
     quitLogin() {
       localStorage.removeItem("token");
       alert("您已退出登录...");
       this.$router.go(0);
     },
-    kcpjck() {
-      this.$router.push({
-        name: "xsskc",
+    xsskcpj() {
+      this.$router.push({ name: "xsskc" });
+    },
+    xssyxpj(tableid) {
+      this.$router.push({ 
+        name: "xssyx",
+        query:{
+          tableid:tableid
+        }
       });
+      // alert(tableid)
+    },
+  },
+  computed: {
+    ...mapState("home", ["tokenvalid", "xsstable"]),
+  },
+  mounted() {
+    this.token = localStorage.getItem("token");
+    this.$store.dispatch("home/getxsstable", this.token);
+  },
+  watch: {
+    tokenvalid() {
+      alert("登录状态已失效！请重新登录...");
+      this.$store.commit("home/RECOVERTOKENVALID");
+      localStorage.removeItem("token");
+      this.$router.push({ name: "login" });
     },
   },
 };

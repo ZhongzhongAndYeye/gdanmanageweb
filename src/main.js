@@ -13,8 +13,8 @@ Vue.use(VueRouter)
 Vue.use(ElementUI)
 
 new Vue({
-  el:"#app",
-  components:{
+  el: "#app",
+  components: {
     App
   },
   router,
