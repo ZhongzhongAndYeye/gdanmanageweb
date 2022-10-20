@@ -18,7 +18,7 @@
           v-model="password"
           show-password
         ></el-input>
-        {{ msg }}
+          {{ msg }}
         <el-button id="loginbutton" @click="login">登录</el-button>
       </div>
     </el-main>
@@ -33,7 +33,7 @@ export default {
     return {
       username: "",
       password: "",
-      msg: "",
+      msg: ""
     };
   },
   methods: {
@@ -68,7 +68,7 @@ export default {
 };
 </script>
 
-<style >
+<style>
 .el-input__prefix {
   left: 90%;
 }

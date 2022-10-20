@@ -1,9 +1,7 @@
 <template>
   <el-container>
     <el-header>
-      入库时间：{{ rktime }}&nbsp;&nbsp;&nbsp;&nbsp; 采用率：{{
-        frequency * 100
-      }}%
+      入库时间：{{ rktime }}&nbsp;&nbsp;&nbsp;&nbsp; 采用率：{{ frequency }}%
     </el-header>
     <el-main>
       <!-- 牌局显示表格 -->
@@ -11,12 +9,13 @@
         :data="tabledata"
         :show-header="false"
         :row-style="{ height: '100px' }"
+        style="font-size:80px"
       >
-        <el-table-column prop="order" label="序号" width="50"></el-table-column>
+        <el-table-column prop="order" label="序号"></el-table-column>
         <el-table-column
           prop="handcard"
           label="手牌牌型"
-          width="1000"
+          width="1450"
         ></el-table-column>
       </el-table>
     </el-main>
@@ -34,14 +33,25 @@
         <el-dialog title="出库" :visible.sync="dialogFormVisible" width="30%">
           <el-form :model="form">
             <el-form-item label="选择桌子:" :label-width="formLabelWidth">
-              <el-select v-model="form.data" style="width:250px">
-                <el-option v-for="item in xsstable" :key="item.id" :label="item.tablename" :value="item.id"></el-option>
+              <el-select v-model="form.data" style="width: 250px">
+                <el-option
+                  v-for="item in xsstable"
+                  :key="item.id"
+                  :label="item.tablename"
+                  :value="item.id"
+                ></el-option>
               </el-select>
             </el-form-item>
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button @click="dialogFormVisible = false">取消</el-button>
-            <el-button type="primary" @click="dialogFormVisible = false;xssck()"
+            <el-button
+              type="primary"
+              @click="
+                dialogFormVisible = false;
+                xssck();
+              "
+              :disabled="this.form.data == ''"
               >确定</el-button
             >
           </div>
@@ -85,14 +95,15 @@
 </template>
 
 <script>
-import { getxsskc, delxsskc, createxsstable } from "../api";
+import { getxsskc, delxsskc, createxsstable, outofxsskc } from "../api";
 import { mapState } from "vuex";
+import { changeListToEmoji } from "../utils/PKCard"
 export default {
   name: "Xsskc",
   data() {
     return {
       rktime: 0,
-      frequency: 0,
+      frequency: 0.0,
       tabledata: [],
       tokenvalid: 1,
       xsskcdata: [],
@@ -110,12 +121,27 @@ export default {
   },
   methods: {
     // 出库
-    xssck(){
-      if (this.form.data == ""){
-        alert("牌局出库的目标桌子不可为空！")  
-      }else{
-
-      }
+    xssck() {
+      outofxsskc(this.token, this.form.data, this.pjid).then(
+        (response) => {
+          console.log(response)
+          if (response.tokenvalid == 1) {
+            if (response.status == 1) {
+              alert("已成功出库！")
+              this.$router.go(0)
+            } else if (response.status == 2) {
+              alert("此桌下已经存在此牌局，不可对相同桌重复出库！");
+            } else {
+              alert("出库过程中发生错误...");
+            }
+          } else {
+            this.tokenvalid = response.tokenvalid;
+          }
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
     },
     // 新建一桌
     createnewtable() {
@@ -154,9 +180,9 @@ export default {
     },
     // 点击分页导航后执行此函数并传入点击的分页序号
     handleCurrentChange(val) {
-      this.tabledata = this.xsskcdata[val - 1].pjdata;
+      this.tabledata = changeListToEmoji(this.xsskcdata[val - 1].pjdata) ;
       this.rktime = this.xsskcdata[val - 1].putintime;
-      this.frequency = this.xsskcdata[val - 1].frequency;
+      this.frequency = (this.xsskcdata[val - 1].frequency * 100.0).toFixed(2); // 保留两位小数
       this.pjid = this.xsskcdata[val - 1].pjid;
     },
     // 删除牌局
@@ -189,10 +215,11 @@ export default {
     getxsskc(this.token).then(
       (response) => {
         if (response.tokenvalid == 1) {
+          console.log(response)
           if (response.msg == "查询所有限时赛数据成功") {
-            this.tabledata = response.data[0].pjdata; // 默认显示第一页的数据
+            this.tabledata = changeListToEmoji(response.data[0].pjdata) ; // 默认显示第一页的数据
             this.rktime = response.data[0].putintime;
-            this.frequency = response.data[0].frequency;
+            this.frequency = (response.data[0].frequency * 100).toFixed(2);
             this.pjid = response.data[0].pjid;
             this.xsskcdata = response.data;
           } else {
@@ -219,7 +246,12 @@ export default {
 };
 </script>
   
-<style scoped>
+<style>
+
+.el-table .cell{
+  line-height: 100% !important;
+}
+
 .el-table-column {
   width: 100% !important;
 }

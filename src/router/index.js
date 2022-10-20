@@ -66,6 +66,7 @@ const router = new VueRouter({
     ]
 })
 
+// 前置路由守卫
 router.beforeEach((to, from, next) => {
     if (to.meta.routername != "login") {   // 如果不是login界面，则进入
         var token = localStorage.getItem("token")
@@ -91,6 +92,7 @@ router.beforeEach((to, from, next) => {
     next()
 })
 
+// 解决控制窗的一个报红问题
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
     return originalPush.call(this, location).catch(err => err)
