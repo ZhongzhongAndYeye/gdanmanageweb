@@ -23,4 +23,7 @@ export const outofxsskc = (token,tableid,pjid) => requests({method:'post',url:'/
 export const getxssyx = (token,tableid) => requests({method:'get',url:'/gdanmanage/xssyx',headers:{token},params:{tableid}})
 
 // 删除限时赛指定桌子下的指定牌局
-export const delxssyx = (token,tableid,pjid) => requests({method:'delete',url:'gdanmanage/xssyx',headers:{token},data:{tableid,pjid}})
+export const delxssyx = (token,tablepjid) => requests({method:'delete',url:'gdanmanage/xssyx',headers:{token},data:{tablepjid}})
+
+// 改变限时赛指定桌子下的指定牌局order
+export const changexssyxorder = (token,tablepjid,beforeo,aftero) => requests({method:'post',url:"gdanmanage/xssyx/order",headers:{token},data:{tablepjid,beforeo,aftero}})

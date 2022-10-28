@@ -101,14 +101,14 @@ export default {
 #login {
   border: 1px solid #b3c0d1;
   color: #333;
-  width: 50%;
-  height: 50%;
+  width: 30%;
+  height: 40%;
   margin-top: 5%;
-  margin-left: 25%;
+  margin-left: 35%;
 }
 
 .el-header {
-  background-color: #b3c0d1;
+  background-color: #b3c0d1 !important;
   color: #333;
   text-align: center;
   line-height: 100px;
@@ -117,7 +117,7 @@ export default {
 }
 
 .el-main {
-  background-color: #e9eef3;
+  background-color: #e9eef3 !important;
   color: #333;
   text-align: center;
   height: 100%;

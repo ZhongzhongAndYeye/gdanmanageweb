@@ -2,22 +2,24 @@
   <el-container id="loginmain">
     <el-header>
       掼蛋配牌后台
-      <el-button @click="quitLogin">退出登录</el-button>
+      <el-button @click="quitLogin" size="mini" style="margin-left:100px;">退出登录</el-button>
     </el-header>
+    
     <el-main>
-      <el-col :span="4">
-        <el-menu default-active="1" class="el-menu-vertical-demo">
-          <el-submenu index="1">
-            <template slot="title">局数赛</template>
+      <el-col :span="3">
+        <el-menu default-active="1" class="el-menu-vertical-demo" :default-openeds="opends" >
+
+          <el-submenu index="1" class="change">
+            <template slot="title"><b>局数赛</b></template>
             <el-menu-item index="1-1">库存牌局</el-menu-item>
             <el-submenu index="1-2">
               <template slot="title">已选牌局</template>
-              <el-menu-item index="1-2-1">第一桌</el-menu-item>
+              <el-menu-item index="1-2-1" class="change1" style="padding-left:30px">第一桌</el-menu-item>
             </el-submenu>
           </el-submenu>
 
-          <el-submenu index="2">
-            <template slot="title">限时赛</template>
+          <el-submenu index="2" class="change">
+            <template slot="title"><b>限时赛</b></template>
             <el-menu-item index="2-1" @click="xsskcpj">库存牌局</el-menu-item>
             <el-submenu index="2-2">
               <template slot="title">已选牌局</template>
@@ -26,13 +28,17 @@
                 v-for="v in xsstable"
                 :key="v.id"
                 @click="xssyxpj(v.id)"
+                class="change1"
+                style="padding-left:30px"
                 >{{ v.tablename }}</el-menu-item
               >
             </el-submenu>
           </el-submenu>
+
         </el-menu>
+
       </el-col>
-      <el-col :span="19" :offset="1">
+      <el-col :span="21" :offset="0" style="padding-left:5px">
         <router-view></router-view>
       </el-col>
     </el-main>
@@ -46,6 +52,9 @@ export default {
   data() {
     return {
       token: "",
+      opends:['1','2'],
+      uniqueOpened: false,
+      isyx:localStorage.getItem("isyx"),
     };
   },
   methods: {
@@ -72,6 +81,9 @@ export default {
   mounted() {
     this.token = localStorage.getItem("token");
     this.$store.dispatch("home/getxsstable", this.token);
+    if(this.isyx == 1){
+      this.opends.push('2-2')
+    }
   },
   watch: {
     tokenvalid() {
@@ -85,6 +97,13 @@ export default {
 </script>
 
 <style scoped>
+.change {
+  text-align: left;
+}
+
+.change1{
+  text-align: center
+}
 .el-menu-item-group {
   width: 100%;
 }
@@ -100,19 +119,25 @@ export default {
   width: 100%;
 }
 
+.el-submenu .el-menu-item{
+  min-width: 100%;
+}
+
 .el-header {
   background-color: #b3c0d1;
   color: #333;
   text-align: center;
-  line-height: 100px;
-  height: 100px !important;
-  font-size: 50px;
+  line-height: 50px;
+  height: 50px !important;
+  font-size: 30px;
 }
 
-.el-main {
+ .el-main{
   background-color: #e9eef3;
   color: #333;
   text-align: center;
+  padding: 5px;
   height: 100%;
 }
+
 </style>

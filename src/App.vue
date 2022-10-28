@@ -15,4 +15,8 @@ export default {
   #app1{
     height: 100%;
   }
+  *{
+    margin: 0px;
+  }
+
 </style>

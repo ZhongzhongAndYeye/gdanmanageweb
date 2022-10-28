@@ -6,6 +6,8 @@ import Xsskc from "../pages/Xsskc"
 import Xssyx from "../pages/Xssyx"
 
 const router = new VueRouter({
+    mode: 'history',
+    // base: '/pj/', // 部署上线nginx时的对应路由
     routes: [
         {
             path: '/',
@@ -29,9 +31,9 @@ const router = new VueRouter({
                 } else {
                     token = token.replace("_", "/").replace("-", "+") // 解密jwt
                     var json = window.atob(token.split(".")[1]);
-                    var timestamp = Date.parse(new Date()) / 1000; // 获取当前精确到秒的时间戳
-                    if (timestamp <= JSON.parse(json).exp) {       // 判断jwt是否失效
-                        next({                                  // 没有失效则直接跳转home
+                    var timestamp = Date.parse(new Date()) / 1000;   // 获取当前精确到秒的时间戳
+                    if (timestamp <= JSON.parse(json).exp) {         // 判断jwt是否失效
+                        next({                                       // 没有失效则直接跳转home
                             name: "home"
                         })
                     } else {

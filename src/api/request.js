@@ -7,20 +7,20 @@
 import axios from 'axios'
 
 const requests = axios.create({
-    baseURL: "/paijuserver",  // 配置基础路径
+    baseURL: "/paijuserver",    // 配置基础路径
     timeout: 5000,              // 请求超时时间
 })
 
 // 请求拦截器
-requests.interceptors.request.use((config)=>{
+requests.interceptors.request.use((config) => {
     // config是一个配置对象，对象里有一个属性很重要，header请求头
     return config
 })
 
 // 响应拦截器
-requests.interceptors.response.use((res)=>{
+requests.interceptors.response.use((res) => {
     return res.data
-},(err)=>{
+}, (err) => {
     return Promise.reject(new Error('faile'))
 })
 

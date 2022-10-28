@@ -1,22 +1,31 @@
 <template>
   <el-container>
-    <el-header>
+    <el-header class="xsskcheader">
       入库时间：{{ rktime }}&nbsp;&nbsp;&nbsp;&nbsp; 采用率：{{ frequency }}%
     </el-header>
     <el-main>
       <!-- 牌局显示表格 -->
-      <el-table
-        :data="tabledata"
-        :show-header="false"
-        :row-style="{ height: '100px' }"
-        style="font-size:80px"
-      >
-        <el-table-column prop="order" label="序号"></el-table-column>
-        <el-table-column
-          prop="handcard"
-          label="手牌牌型"
-          width="1450"
-        ></el-table-column>
+      <el-table :data="tabledata" :show-header="false" style="font-size: 103px;">
+        <el-table-column label="序号" style="padding:0px">
+          <template slot-scope="scope">
+            <span
+              style="font-size: 50px;margin-left: 20px;"
+              >{{ scope.row.order }}</span
+            >
+          </template>
+        </el-table-column>
+        <el-table-column label="手牌牌型" width="1800">
+          <template slot-scope="scope">
+            <span
+              v-for="(card, index) in scope.row.handcard"
+              :key="index"
+              @click="test(card)"
+              style="font-size: 99px;"
+              :class={red:PKCardColor1(card)}
+              >{{ card }}</span
+            >
+          </template>
+        </el-table-column>
       </el-table>
     </el-main>
     <el-footer>
@@ -25,7 +34,7 @@
         <el-button
           type="primary"
           size="small"
-          style="margin-right: 10px"
+          style="margin-right: 10px;"
           @click="dialogFormVisible = true"
           >出库</el-button
         >
@@ -83,13 +92,16 @@
         </el-popover>
       </div>
       <!-- 分页器 -->
-      <el-pagination
-        background
-        layout="prev, pager, next"
-        :page-count="this.xsskcdata.length"
-        @current-change="handleCurrentChange"
-      >
-      </el-pagination>
+      <div class="xsspagination">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :page-count="this.xsskcdata.length"
+          :current-page="currentpage"
+          @current-change="handleCurrentChange"
+        >
+        </el-pagination>
+      </div>
     </el-footer>
   </el-container>
 </template>
@@ -97,38 +109,42 @@
 <script>
 import { getxsskc, delxsskc, createxsstable, outofxsskc } from "../api";
 import { mapState } from "vuex";
-import { changeListToEmoji } from "../utils/PKCard"
+import { changeListToEmoji,PKCardColor } from "../utils/PKCard";
 export default {
   name: "Xsskc",
   data() {
     return {
-      rktime: 0,
-      frequency: 0.0,
-      tabledata: [],
-      tokenvalid: 1,
-      xsskcdata: [],
-      pjid: "",
-      token: "",
-      visible: false,
-      tablename: "",
+      rktime: 0,      // 入库时间
+      frequency: 0.0, // 采用率
+      tabledata: [],  // 当前的table显示数据
+      tokenvalid: 1,  // token过期标识
+      xsskcdata: [],  // 所有的库存数据
+      pjid: "",       // 当前的库存牌局id
+      token: "",      // 当前的token
+      visible: false, // 删除是否可见
+      tablename: "",  // 新建桌子时的输入的tablename
+      currentpage:1,
 
-      dialogFormVisible: false,
+      dialogFormVisible: false, // table选择弹窗是否可视
       form: {
-        data: "",
+        data: "",               // 选择的tableid值
       },
-      formLabelWidth: "100px",
+      formLabelWidth: "100px",  // 选择桌子表单的设置
     };
   },
   methods: {
+    PKCardColor1(card){
+      return PKCardColor(card)
+    },
     // 出库
     xssck() {
       outofxsskc(this.token, this.form.data, this.pjid).then(
         (response) => {
-          console.log(response)
+          console.log(response);
           if (response.tokenvalid == 1) {
             if (response.status == 1) {
-              alert("已成功出库！")
-              this.$router.go(0)
+              alert("已成功出库！");
+              this.$router.go(0);
             } else if (response.status == 2) {
               alert("此桌下已经存在此牌局，不可对相同桌重复出库！");
             } else {
@@ -180,15 +196,16 @@ export default {
     },
     // 点击分页导航后执行此函数并传入点击的分页序号
     handleCurrentChange(val) {
-      this.tabledata = changeListToEmoji(this.xsskcdata[val - 1].pjdata) ;
+      this.tabledata = changeListToEmoji(this.xsskcdata[val - 1].pjdata);
       this.rktime = this.xsskcdata[val - 1].putintime;
       this.frequency = (this.xsskcdata[val - 1].frequency * 100.0).toFixed(2); // 保留两位小数
       this.pjid = this.xsskcdata[val - 1].pjid;
+      localStorage.xsscurrentpage = val
     },
     // 删除牌局
     delxsskc() {
-      console.log(this.pjid);
-      delxsskc(this.token, this.pjid).then(
+      console.log(this.tablepjid);
+      delxsskc(this.token, this.tablepjid).then(
         (response) => {
           if (response.tokenvalid == 1) {
             if (response.msg == "删除记录成功") {
@@ -209,18 +226,24 @@ export default {
   computed: {
     ...mapState("home", ["xsstable"]),
   },
+  beforeDestroy(){
+    localStorage.removeItem("xsscurrentpage")
+  },
   mounted() {
     this.token = localStorage.getItem("token");
     // 获取所有库存牌局信息
     getxsskc(this.token).then(
       (response) => {
         if (response.tokenvalid == 1) {
-          console.log(response)
+          // console.log(response);
           if (response.msg == "查询所有限时赛数据成功") {
-            this.tabledata = changeListToEmoji(response.data[0].pjdata) ; // 默认显示第一页的数据
-            this.rktime = response.data[0].putintime;
-            this.frequency = (response.data[0].frequency * 100).toFixed(2);
-            this.pjid = response.data[0].pjid;
+            if(localStorage.getItem("xsscurrentpage")){
+              this.currentpage = localStorage.getItem("xsscurrentpage")*1
+            }
+            this.tabledata = changeListToEmoji(response.data[this.currentpage - 1].pjdata); // 默认显示第一页的数据
+            this.rktime = response.data[this.currentpage - 1].putintime;
+            this.frequency = (response.data[this.currentpage - 1].frequency * 100).toFixed(2);
+            this.pjid = response.data[this.currentpage - 1].pjid;
             this.xsskcdata = response.data;
           } else {
             alert("获取限时赛库存牌局数据时发生错误:", msg);
@@ -247,8 +270,18 @@ export default {
 </script>
   
 <style>
+.red{
+  color:rgb(207, 12, 12)
+}
+.xsskcheader {
+  background: white !important;
+}
 
-.el-table .cell{
+.xsspagination{
+  margin-top: 5px;
+}
+
+.el-table .cell {
   line-height: 100% !important;
 }
 
@@ -256,26 +289,29 @@ export default {
   width: 100% !important;
 }
 
-.el-pagination {
-  margin-top: 10px;
-}
-
 #footerbtn {
   float: left;
+  margin-top: -5px;
 }
 .el-header {
   background: white;
-  height: 50px !important;
+  height: 45px !important;
   font-size: 20px;
   line-height: 50px;
 }
 .el-main {
-  height: 445px;
+  height: 525px;
   background: rgb(251, 251, 251);
+  padding: 5px 0px 0px 0px !important;
 }
 .el-footer {
-  height: 50px !important;
+  height: 45px !important;
   background: white;
   line-height: 50px;
+}
+
+.el-table .el-table__cell {
+    padding: 0px 0 !important;
+    text-align: center !important;
 }
 </style>
