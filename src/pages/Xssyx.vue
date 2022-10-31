@@ -140,13 +140,15 @@ export default {
           aftero = 1;
         } else aftero = beforeo + 1;
       }
-      changexssyxorder(this.token, this.tablepjid, beforeo, aftero).then(
+      changexssyxorder(this.token, this.tablepjid, beforeo, aftero,this.tableid).then(
         (response) => {
           console.log(response);
           if (response.tokenvalid == 1) {
             if (response.status == 1) {
               this.$router.go(0);
-            } else {
+            }else if(response.status == 2){
+              alert("改变顺序后此牌局和此桌子其他牌局重复，操作失败...")
+            }else {
               alert("改变顺序时出现错误...");
             }
           } else {

@@ -26,4 +26,4 @@ export const getxssyx = (token,tableid) => requests({method:'get',url:'/gdanmana
 export const delxssyx = (token,tablepjid) => requests({method:'delete',url:'gdanmanage/xssyx',headers:{token},data:{tablepjid}})
 
 // 改变限时赛指定桌子下的指定牌局order
-export const changexssyxorder = (token,tablepjid,beforeo,aftero) => requests({method:'post',url:"gdanmanage/xssyx/order",headers:{token},data:{tablepjid,beforeo,aftero}})
+export const changexssyxorder = (token,tablepjid,beforeo,aftero,tableid) => requests({method:'post',url:"gdanmanage/xssyx/order",headers:{token},data:{tablepjid,beforeo,aftero,tableid}})

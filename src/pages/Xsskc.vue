@@ -204,9 +204,10 @@ export default {
     },
     // 删除牌局
     delxsskc() {
-      console.log(this.tablepjid);
-      delxsskc(this.token, this.tablepjid).then(
+      console.log(this.pjid);
+      delxsskc(this.token, this.pjid).then(
         (response) => {
+          console.log(response)
           if (response.tokenvalid == 1) {
             if (response.msg == "删除记录成功") {
               this.$router.go(0);
