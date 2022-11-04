@@ -27,3 +27,6 @@ export const delxssyx = (token,tablepjid) => requests({method:'delete',url:'gdan
 
 // 改变限时赛指定桌子下的指定牌局order
 export const changexssyxorder = (token,tablepjid,beforeo,aftero,tableid) => requests({method:'post',url:"gdanmanage/xssyx/order",headers:{token},data:{tablepjid,beforeo,aftero,tableid}})
+
+// 自定义限时赛指定桌子的指定牌局
+export const diyxssyx = (token,tableid,tablepjid,data) => requests({method:'post',url:"gdanmanage/xssyx",headers:{token},data:{tableid,tablepjid,data}})

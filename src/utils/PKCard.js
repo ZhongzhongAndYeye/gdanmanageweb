@@ -90,6 +90,31 @@ export const changeListToEmoji = (list) => {
     }
     return listcon
 }
+
+// 将一局的emoji数组转为牌值的数组
+export const changeEmojiToList = (emoji) => {
+    // console.log(emoji)
+    var listcon = [{},{},{},{}]
+    for(const i in emoji){
+        listcon[i].order = emoji[i].order
+        listcon[i].handcard = []
+        for(const j in emoji[i].handcard){
+            listcon[i].handcard[j] = emoji[i].handcard[j]
+        }
+    }
+    // console.log(listcon)
+    for(const i in listcon){
+        for(const x in listcon[i].handcard){
+            for (const j in PKCard){
+                if(listcon[i].handcard[x] == j){
+                    listcon[i].handcard[x] = PKCard[j]
+                }
+            }
+        }
+    }
+    return listcon 
+}
+
 // 牌值权重
 var PKCard2 =
 {
@@ -193,3 +218,4 @@ export const PKCardColor = (pkstr) => {
     }
     return 0
 }
+

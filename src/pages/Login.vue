@@ -87,6 +87,9 @@ export default {
   margin-top: -21px;
   height: 50px;
   line-height: 50px;
+  margin-left: -1px;
+  margin-right: -1px;
+  width: 100% + 2px;
 }
 
 #username {
