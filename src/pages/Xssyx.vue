@@ -110,13 +110,7 @@
           "
           >修改</el-button
         >
-        <el-button
-          type="primary"
-          size="mini"
-          @click="
-            showfooter2 = 1;
-            showfooter1 = 0;
-          "
+        <el-button type="primary" size="mini" @click="gofooter2()"
           >随机生成</el-button
         >
       </div>
@@ -159,19 +153,31 @@
       <div class="footerdiv">
         <ul class="footerul">
           <li v-for="(v, i) in combination" :key="i" class="footerulli">
-            <el-button type="info" plain style="width: 85px"
+            <el-button type="info" plain style="width: 85px" @click="combos = v"
               >组合{{ v }}</el-button
             >
           </li>
         </ul>
       </div>
-      <el-button type="primary" style="margin-top: 6%">保存</el-button>
+      <el-button
+        type="primary"
+        style="margin-top: 6%"
+        @click="createrandompj()"
+        :disabled="combos == 0"
+        >保存</el-button
+      >
     </el-footer>
   </el-container>
 </template>
 
 <script>
-import { getxssyx, delxssyx, changexssyxorder, diyxssyx } from "../api";
+import {
+  getxssyx,
+  delxssyx,
+  changexssyxorder,
+  diyxssyx,
+  randomxssyx,
+} from "../api";
 import {
   changeListToEmoji,
   changeEmojiToList,
@@ -182,8 +188,8 @@ export default {
   props: ["tableid"],
   data() {
     return {
-      visible: false,
-      token: "",
+      visible: false, // 点击删除后的弹窗显示标识
+      token: "", // jwt-token
       tablepjid: "", // 桌子牌局id
       tabledata: [], // 表格展示的数据
       tablepjdata: [], // 所有的桌子牌局数据
@@ -191,23 +197,70 @@ export default {
       currentpage: 1, // 当前页码
       combination: [
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-        21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
+        21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       ], // 组合数
       tabledatacon: [], // 自定义手牌容器
       isclickorder: -1, // 记录点击的序号值 默认为0表示没有选择
       isclickorderarr: [0, 0, 0, 0], // 控制序号是否被选择以显示颜色的数组
-      showfooter1: 0,
-      showfooter2: 0,
+      combos: 0, // 随机生成的组合序号
+      showfooter1: 0, // 自定义手牌footer显示
+      showfooter2: 0, // 随机生成footer显示
     };
   },
   methods: {
+    // 随机生成
+    createrandompj() {
+      randomxssyx(this.token, this.tableid, this.combos).then(
+        (response) => {
+          if (response.tokenvalid == 1) {
+            if (response.status == 1) {
+              alert("已经在此桌子上随机生成了指定的组合类型的牌局！");
+              localStorage.xsscurrentpage = this.tablepjdata.length + 1;
+              this.$router.go(0); // 刷新不论写在哪 一定是在所有可以运行的语句执行后执行
+            } else {
+              alert("随机过程中出现未知错误，随机失败...");
+            }
+          } else {
+            this.tokenvalid = response.tokenvalid;
+          }
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
+      this.combos = 0; // 组合选择情况初始化，使得保存按钮disabled
+    },
+    // 进入随机生成footer的函数
+    gofooter2() {
+      if (this.showfooter1 == 1) {
+        this.open();
+      } else {
+        if (this.showfooter2 == 1) {
+          this.showfooter2 = 0;
+        } else {
+          this.showfooter2 = 1;
+        }
+      }
+    },
+    // 随机生成的依赖函数
+    open() {
+      this.$confirm("当前牌局未保存，是否进入随机生成界面?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }).then(() => {
+        this.handleCurrentChange(this.currentpage);
+        this.showfooter2 = 1;
+      });
+    },
     // 自定义手牌点击保存后的事件
     diyhandcardrequest() {
       if (this.tabledatacon.length != 0) {
         alert("还有手牌尚未分配完成...保存失败！");
         return;
       }
-      for (var i = 0; i < 4; i++) { // 注意 js中这种for循环的i不能使用const声明，因为const声明的常量赋初始值后不可改变，这种循环需要改变i的值回报错
+      for (var i = 0; i < 4; i++) {
+        // 注意 js中这种for循环的i不能使用const声明，因为const声明的常量赋初始值后不可改变，这种循环需要改变i的值回报错
         if (this.tabledata[i].handcard.length != 27) {
           alert("请确保每份的手牌的数量正确(27张)...保存失败！");
           return;
@@ -324,7 +377,7 @@ export default {
         (response) => {
           if (response.tokenvalid == 1) {
             if (response.status == 1) {
-              alert("删除成功！");
+              localStorage.xsscurrentpage = 1;
               this.$router.go(0);
             } else {
               alert("删除过程中出现错误...");
@@ -342,7 +395,7 @@ export default {
     handleCurrentChange(val) {
       this.tabledata = changeListToEmoji(this.tablepjdata[val - 1].tablepjdata);
       this.tablepjid = this.tablepjdata[val - 1].tablepjid;
-      localStorage.xsscurrentpage = val;
+      localStorage.xsscurrentpage = val; // 存储当前页让刷新后保持在当前页面
       this.currentpage = val;
       this.tabledatacon = [];
       this.isclickorder = -1;
@@ -357,7 +410,7 @@ export default {
   },
   mounted() {
     this.token = localStorage.getItem("token");
-    localStorage.isyx = 1;
+    localStorage.isyx = 1; // 保持已选牌局菜单展开标识
     getxssyx(this.token, this.tableid).then(
       (response) => {
         if (response.tokenvalid == 1) {
